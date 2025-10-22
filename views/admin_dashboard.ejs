@@ -36,13 +36,58 @@
         <div class="col-12">
           <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="fas fa-users me-2"></i>Student Management</h2>
-            <button
-              class="btn btn-success"
-              data-bs-toggle="modal"
-              data-bs-target="#addStudentModal"
-            >
-              <i class="fas fa-plus me-2"></i>Add Student
-            </button>
+            <div class="btn-group">
+              <button
+                class="btn btn-success"
+                data-bs-toggle="modal"
+                data-bs-target="#addStudentModal"
+              >
+                <i class="fas fa-plus me-2"></i>Add Student
+              </button>
+              <button
+                class="btn btn-warning"
+                id="bulkAdmitBtn"
+                onclick="bulkAdmitAll()"
+              >
+                <i class="fas fa-users me-2"></i>Admit All Pending
+                <span class="badge bg-light text-dark ms-1" id="pendingCount">
+                  <%= students.filter(s => !s.admitted).length %>
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Filter Buttons -->
+          <div class="mb-3">
+            <div class="btn-group" role="group">
+              <button
+                type="button"
+                class="btn btn-outline-primary active"
+                onclick="filterStudents('all')"
+                id="filterAll"
+              >
+                <i class="fas fa-list me-1"></i>All Students
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-warning"
+                onclick="filterStudents('pending')"
+                id="filterPending"
+              >
+                <i class="fas fa-clock me-1"></i>Pending
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-success"
+                onclick="filterStudents('admitted')"
+                id="filterAdmitted"
+              >
+                <i class="fas fa-check me-1"></i>Admitted
+              </button>
+            </div>
+            <span class="ms-3 text-muted" id="studentCount">
+              Showing all students
+            </span>
           </div>
 
           <div class="card">
@@ -255,6 +300,102 @@
         });
       });
 
+      // Filter Students
+      function filterStudents(filter) {
+        const rows = document.querySelectorAll('tbody tr');
+        const filterButtons = document.querySelectorAll('.btn-group button');
+        const studentCount = document.getElementById('studentCount');
+        let visibleCount = 0;
+
+        // Remove active class from all filter buttons
+        filterButtons.forEach((btn) => btn.classList.remove('active'));
+
+        // Add active class to clicked button
+        document
+          .getElementById(
+            `filter${filter.charAt(0).toUpperCase() + filter.slice(1)}`
+          )
+          .classList.add('active');
+
+        rows.forEach((row) => {
+          const statusBadge = row.querySelector('.badge');
+          const isAdmitted =
+            statusBadge && statusBadge.textContent.includes('Admitted');
+
+          if (filter === 'all') {
+            row.style.display = '';
+            visibleCount++;
+          } else if (filter === 'pending' && !isAdmitted) {
+            row.style.display = '';
+            visibleCount++;
+          } else if (filter === 'admitted' && isAdmitted) {
+            row.style.display = '';
+            visibleCount++;
+          } else {
+            row.style.display = 'none';
+          }
+        });
+
+        // Update count display
+        if (filter === 'all') {
+          studentCount.textContent = `Showing all ${visibleCount} students`;
+        } else if (filter === 'pending') {
+          studentCount.textContent = `Showing ${visibleCount} pending students`;
+        } else if (filter === 'admitted') {
+          studentCount.textContent = `Showing ${visibleCount} admitted students`;
+        }
+      }
+
+      // Bulk Admit All Pending Students
+      async function bulkAdmitAll() {
+        const pendingStudents =
+          document.querySelectorAll('tbody tr').length -
+          document.querySelectorAll('.badge.bg-success').length;
+
+        if (pendingStudents === 0) {
+          showToast('No pending students to admit', 'info');
+          return;
+        }
+
+        if (
+          confirm(
+            `Are you sure you want to admit all ${pendingStudents} pending students? This will send SMS notifications to all of them.`
+          )
+        ) {
+          const bulkBtn = document.getElementById('bulkAdmitBtn');
+          const originalText = bulkBtn.innerHTML;
+
+          // Show loading state
+          bulkBtn.innerHTML =
+            '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+          bulkBtn.disabled = true;
+
+          try {
+            const response = await fetch('/admin/bulk-admit', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+              showToast(result.message, 'success');
+              setTimeout(() => location.reload(), 2000);
+            } else {
+              showToast(result.message || 'Error admitting students', 'error');
+            }
+          } catch (error) {
+            showToast('Error admitting students', 'error');
+          } finally {
+            // Restore button state
+            bulkBtn.innerHTML = originalText;
+            bulkBtn.disabled = false;
+          }
+        }
+      }
+
       // Toast notification
       function showToast(message, type) {
         const toast = document.getElementById('alertToast');
@@ -269,6 +410,8 @@
           icon.className = 'fas fa-check-circle text-success me-2';
         } else if (type === 'error') {
           icon.className = 'fas fa-exclamation-triangle text-danger me-2';
+        } else if (type === 'info') {
+          icon.className = 'fas fa-info-circle text-info me-2';
         }
 
         const bsToast = new bootstrap.Toast(toast);

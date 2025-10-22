@@ -165,6 +165,79 @@ app.post('/admit/:id', requireAdminAuth, async (req, res) => {
   }
 });
 
+// Bulk Admit All Pending Students
+app.post('/admin/bulk-admit', requireAdminAuth, async (req, res) => {
+  try {
+    // Get all pending students
+    const [pendingStudents] = await pool.execute(
+      'SELECT * FROM students WHERE admitted = 0'
+    );
+
+    if (pendingStudents.length === 0) {
+      return res.json({
+        success: false,
+        message: 'No pending students to admit',
+      });
+    }
+
+    const baseURL = `${req.protocol}://${req.get('host')}`;
+    let successCount = 0;
+    let errorCount = 0;
+    const errors = [];
+
+    // Process each pending student
+    for (const student of pendingStudents) {
+      try {
+        const pin = generatePIN();
+
+        // Update student status and add PIN
+        await pool.execute(
+          'UPDATE students SET admitted = 1, pin_code = ? WHERE id = ?',
+          [pin, student.id]
+        );
+
+        // Send SMS
+        const message = `Congratulations ${student.full_name}! You have been admitted to our institution. Your admission number is ${student.admission_number} and your PIN is ${pin}. Visit ${baseURL}/student/login to access your admission documents.`;
+
+        const smsResult = await sendSMS(student.phone_number, message);
+
+        if (smsResult.success) {
+          successCount++;
+        } else {
+          errorCount++;
+          errors.push(`${student.full_name}: SMS failed`);
+        }
+      } catch (error) {
+        errorCount++;
+        errors.push(`${student.full_name}: ${error.message}`);
+        console.error(`Error admitting student ${student.full_name}:`, error);
+      }
+    }
+
+    let message = `Successfully admitted ${successCount} students`;
+    if (errorCount > 0) {
+      message += `, ${errorCount} errors occurred`;
+    }
+
+    res.json({
+      success: true,
+      message: message,
+      details: {
+        total: pendingStudents.length,
+        success: successCount,
+        errors: errorCount,
+        errorList: errors,
+      },
+    });
+  } catch (error) {
+    console.error('Error in bulk admit:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error processing bulk admission',
+    });
+  }
+});
+
 // Student Login
 app.get('/student/login', (req, res) => {
   res.render('student_login', { error: null });
@@ -278,8 +351,14 @@ app.get('/student/download/:type', requireStudentAuth, async (req, res) => {
 
 // Logout
 app.post('/logout', (req, res) => {
+  const wasStudent = req.session.studentId;
   req.session.destroy();
-  res.redirect('/');
+
+  if (wasStudent) {
+    res.redirect('/student/login');
+  } else {
+    res.redirect('/admin/login');
+  }
 });
 
 // Start server
