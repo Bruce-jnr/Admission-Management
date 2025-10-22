@@ -304,7 +304,21 @@ app.get('/student/admission-letter', requireStudentAuth, async (req, res) => {
   }
 });
 
-// Download PDF
+// Static PDF downloads (no authentication required for direct access)
+app.get('/documents/prospectus.pdf', (req, res) => {
+  const filePath =
+    'D:\\Admission Management\\public\\css\\documents\\Prospectus.pdf';
+  console.log('Prospectus download requested, file path:', filePath);
+  console.log('File exists:', require('fs').existsSync(filePath));
+  res.download(filePath, 'Prospectus.pdf');
+});
+
+app.get('/documents/acceptance-letter.pdf', (req, res) => {
+  const filePath = 'public/css/documents/Acceptance Letter.pdf';
+  res.download(filePath, 'Acceptance Letter.pdf');
+});
+
+// Download PDF (kept for backward compatibility)
 app.get('/student/download/:type', requireStudentAuth, async (req, res) => {
   try {
     const { type } = req.params;
@@ -318,13 +332,7 @@ app.get('/student/download/:type', requireStudentAuth, async (req, res) => {
       const path = require('path');
 
       if (type === 'prospectus') {
-        const filePath = path.join(
-          __dirname,
-          'public',
-          'css',
-          'documents',
-          'Prospectus.pdf'
-        );
+        const filePath = 'public/css/documents/Prospectus.pdf';
         console.log('Prospectus download requested, file path:', filePath);
         console.log('File exists:', require('fs').existsSync(filePath));
         res.download(filePath, 'Prospectus.pdf');
