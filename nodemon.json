@@ -1,0 +1,12 @@
+{
+  "watch": ["server.js", "db/", "utils/", "views/", "public/"],
+  "ext": "js,json,ejs,css",
+  "ignore": ["node_modules/", "*.log", "test-*.js", "debug-*.js"],
+  "delay": 1000,
+  "env": {
+    "NODE_ENV": "development"
+  },
+  "verbose": true,
+  "restartable": "rs"
+}
+
