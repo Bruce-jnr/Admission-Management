@@ -17,7 +17,6 @@ async function sendSMS(phoneNumber, message) {
       url: 'https://sms.arkesel.com/api/v2/sms/send',
       headers: {
         'api-key': process.env.ARKSEL_APIKEY,
-        'Content-Type': 'application/json',
       },
       data: data,
     };
@@ -25,13 +24,24 @@ async function sendSMS(phoneNumber, message) {
     const response = await axios(config);
 
     if (response.data.status === 'success') {
+      const messageId =
+        response.data.data && response.data.data[0]
+          ? response.data.data[0].id
+          : 'unknown';
+      const recipient =
+        response.data.data && response.data.data[0]
+          ? response.data.data[0].recipient
+          : formattedPhone;
+
       console.log('SMS sent successfully:', {
-        messageId: response.data.message_id,
-        recipient: formattedPhone,
+        messageId: messageId,
+        recipient: recipient,
       });
       return {
         success: true,
         data: response.data,
+        messageId: messageId,
+        recipient: recipient,
       };
     } else {
       console.error('SMS sending failed:', response.data);
