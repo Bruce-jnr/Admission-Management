@@ -40,22 +40,6 @@ function validateConfig() {
   if (process.env.SUPER_ADMIN_PASSWORD.length < 8) {
     throw new Error('SUPER_ADMIN_PASSWORD must contain at least 8 characters');
   }
-
-  // Date validation
-  const dates = {
-    REPORTING_DATE: process.env.REPORTING_DATE || '2026-11-11',
-    FEE_DEADLINE: process.env.FEE_DEADLINE || '2026-11-10',
-  };
-
-  for (const [name, value] of Object.entries(dates)) {
-    const validDate =
-      /^\d{4}-\d{2}-\d{2}$/.test(value) &&
-      !Number.isNaN(new Date(`${value}T12:00:00`).getTime());
-
-    if (!validDate) {
-      throw new Error(`${name} must use YYYY-MM-DD format`);
-    }
-  }
 }
 
 // Application configuration
@@ -87,12 +71,12 @@ const config = {
   documentsDirectory: path.join(__dirname, 'documents'),
 
   // Admission configuration
-  admissionLetter: {
-    academicYear: process.env.ACADEMIC_YEAR || '2026/2027',
-    reportingDate: process.env.REPORTING_DATE || '2026-11-11',
-    reportingTime: process.env.REPORTING_TIME || '6:00pm',
-    feeDeadline: process.env.FEE_DEADLINE || '2026-11-10',
-  },
+  admissionLetter: Object.freeze({
+    academicYear: '2026/2027',
+    reportingDate: '2026-11-11',
+    reportingTime: '6:00pm',
+    feeDeadline: '2026-11-10',
+  }),
 };
 
 module.exports = {

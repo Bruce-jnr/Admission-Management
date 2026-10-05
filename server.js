@@ -59,6 +59,7 @@ function createApp() {
 async function start() {
   validateConfig();
   await initializeDatabase();
+  console.log('Database connection successful');
   const app = createApp();
   const server = await new Promise((resolve, reject) => {
     const listener = app.listen(port, () => {

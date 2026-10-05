@@ -35,7 +35,7 @@ On startup, the application creates or safely upgrades its `students` table. It 
 
 Admission documents are stored in `documents/`, outside the public static directory, and are served only after student authentication.
 
-Admission-letter dates are configured with `ACADEMIC_YEAR`, `REPORTING_DATE`, `REPORTING_TIME`, and `FEE_DEADLINE`. Date values use `YYYY-MM-DD` format so the heading, reporting instructions, and payment deadline remain consistent without editing the template.
+The academic year, reporting date and time, and fee deadline are fixed application constants in `config.js` so the admission letter remains consistent across environments.
 
 ## Security and operations
 
