@@ -1,8 +1,11 @@
 const crypto = require('crypto');
 const { pinEncryptionSecret } = require('../config');
 
-const key = crypto.createHash('sha256').update(pinEncryptionSecret).digest();
+if (!pinEncryptionSecret) {
+  throw new Error('PIN_ENCRYPTION_SECRET is not configured');
+}
 
+const key = crypto.createHash('sha256').update(pinEncryptionSecret).digest();
 function encryptPIN(pin) {
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
@@ -16,7 +19,11 @@ function decryptPIN(value) {
   try {
     const [version, ivHex, tagHex, encryptedHex] = value.split(':');
     if (version !== 'v1' || !ivHex || !tagHex || !encryptedHex) return null;
-    const decipher = crypto.createDecipheriv('aes-256-gcm', key, Buffer.from(ivHex, 'hex'));
+    const decipher = crypto.createDecipheriv(
+      'aes-256-gcm',
+      key,
+      Buffer.from(ivHex, 'hex'),
+    );
     decipher.setAuthTag(Buffer.from(tagHex, 'hex'));
     return Buffer.concat([
       decipher.update(Buffer.from(encryptedHex, 'hex')),
