@@ -12,7 +12,12 @@ async function hashPassword(password) {
 async function verifyPassword(password, storedHash) {
   if (typeof storedHash !== 'string') return false;
   const [algorithm, salt, expectedHex] = storedHash.split(':');
-  if (algorithm !== 'scrypt' || !salt || !/^[a-f0-9]{128}$/.test(expectedHex || '')) return false;
+  if (
+    algorithm !== 'scrypt' ||
+    !salt ||
+    !/^[a-f0-9]{128}$/.test(expectedHex || '')
+  )
+    return false;
   const actual = await scrypt(String(password || ''), salt, 64);
   const expected = Buffer.from(expectedHex, 'hex');
   return crypto.timingSafeEqual(actual, expected);
@@ -21,7 +26,8 @@ async function verifyPassword(password, storedHash) {
 function validatePassword(password) {
   const value = String(password || '');
   if (value.length < 8) return 'Password must contain at least 8 characters';
-  if (!/[A-Za-z]/.test(value) || !/\d/.test(value)) return 'Password must include at least one letter and one number';
+  if (!/[A-Za-z]/.test(value) || !/\d/.test(value))
+    return 'Password must include at least one letter and one number';
   return null;
 }
 

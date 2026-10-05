@@ -1,5 +1,9 @@
 const mysql = require('mysql2/promise');
-const { database, superAdminPassword, superAdminUsername } = require('../config');
+const {
+  database,
+  superAdminPassword,
+  superAdminUsername,
+} = require('../config');
 const { hashPassword } = require('../services/password');
 
 const pool = mysql.createPool({
@@ -13,7 +17,7 @@ async function columnExists(connection, table, column) {
   const [rows] = await connection.execute(
     `SELECT 1 FROM information_schema.columns
      WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?`,
-    [table, column]
+    [table, column],
   );
   return rows.length > 0;
 }
@@ -21,7 +25,7 @@ async function columnExists(connection, table, column) {
 async function addColumn(connection, table, column, definition) {
   if (!(await columnExists(connection, table, column))) {
     await connection.query(
-      `ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`
+      `ALTER TABLE \`${table}\` ADD COLUMN \`${column}\` ${definition}`,
     );
   }
 }
@@ -47,12 +51,42 @@ async function initializeDatabase() {
       )
     `);
 
-    await addColumn(connection, 'students', 'pin_hash', 'VARCHAR(255) NULL AFTER pin_code');
-    await addColumn(connection, 'students', 'admitted_at', 'DATETIME NULL AFTER admitted');
-    await addColumn(connection, 'students', 'pin_ciphertext', 'TEXT NULL AFTER pin_hash');
-    await addColumn(connection, 'students', 'sms_status', "VARCHAR(20) NOT NULL DEFAULT 'not_sent' AFTER pin_hash");
-    await addColumn(connection, 'students', 'sms_sent_at', 'DATETIME NULL AFTER sms_status');
-    await addColumn(connection, 'students', 'sms_error', 'TEXT NULL AFTER sms_sent_at');
+    await addColumn(
+      connection,
+      'students',
+      'pin_hash',
+      'VARCHAR(255) NULL AFTER pin_code',
+    );
+    await addColumn(
+      connection,
+      'students',
+      'admitted_at',
+      'DATETIME NULL AFTER admitted',
+    );
+    await addColumn(
+      connection,
+      'students',
+      'pin_ciphertext',
+      'TEXT NULL AFTER pin_hash',
+    );
+    await addColumn(
+      connection,
+      'students',
+      'sms_status',
+      "VARCHAR(20) NOT NULL DEFAULT 'not_sent' AFTER pin_hash",
+    );
+    await addColumn(
+      connection,
+      'students',
+      'sms_sent_at',
+      'DATETIME NULL AFTER sms_status',
+    );
+    await addColumn(
+      connection,
+      'students',
+      'sms_error',
+      'TEXT NULL AFTER sms_sent_at',
+    );
     await connection.execute(
       'UPDATE students SET admitted_at = created_at WHERE admitted = 1 AND admitted_at IS NULL',
     );
@@ -78,13 +112,13 @@ async function initializeDatabase() {
     );
 
     const [superAdmins] = await connection.execute(
-      "SELECT id FROM admin_users WHERE role = 'super_admin' LIMIT 1"
+      "SELECT id FROM admin_users WHERE role = 'super_admin' LIMIT 1",
     );
     if (!superAdmins.length) {
       await connection.execute(
         `INSERT INTO admin_users (username, full_name, password_hash, role)
          VALUES (?, 'Super Administrator', ?, 'super_admin')`,
-        [superAdminUsername, await hashPassword(superAdminPassword)]
+        [superAdminUsername, await hashPassword(superAdminPassword)],
       );
       console.log(`Created initial super admin account: ${superAdminUsername}`);
     }
