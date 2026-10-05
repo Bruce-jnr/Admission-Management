@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Management - Admission Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet" />
+  </head>
+  <body class="bg-light">
+    <nav class="navbar navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="/admin"><i class="fas fa-arrow-left me-2"></i>Student Management</a>
+        <div class="d-flex align-items-center">
+          <span class="navbar-text text-white me-3"><%= admin.full_name %></span>
+          <form method="POST" action="/logout">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
+            <button class="btn btn-outline-light">Logout</button>
+          </form>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container py-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div><h2 class="mb-1">Administrator Accounts</h2><p class="text-muted mb-0">Create and manage staff access.</p></div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal"><i class="fas fa-user-plus me-2"></i>Create User</button>
+      </div>
+
+      <div class="card shadow-sm"><div class="card-body"><div class="table-responsive">
+        <table class="table align-middle">
+          <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody>
+            <% users.forEach(function(user) { %>
+            <tr>
+              <td><%= user.full_name %></td><td><code><%= user.username %></code></td>
+              <td><span class="badge <%= user.role === 'super_admin' ? 'bg-primary' : 'bg-secondary' %>"><%= user.role === 'super_admin' ? 'Super Admin' : 'Admin' %></span></td>
+              <td><span class="badge <%= user.active ? 'bg-success' : 'bg-danger' %>"><%= user.active ? 'Active' : 'Disabled' %></span></td>
+              <td><%= new Date(user.created_at).toLocaleDateString() %></td>
+              <td>
+                <button class="btn btn-sm btn-outline-primary edit-user" data-id="<%= user.id %>" data-username="<%= user.username %>" data-name="<%= user.full_name %>">Edit</button>
+                <button class="btn btn-sm btn-outline-warning reset-password" data-id="<%= user.id %>" data-name="<%= user.full_name %>">Reset Password</button>
+                <% if (user.role === 'admin') { %><button class="btn btn-sm <%= user.active ? 'btn-outline-danger' : 'btn-outline-success' %> toggle-user" data-id="<%= user.id %>"><%= user.active ? 'Disable' : 'Enable' %></button><% } %>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div></div></div>
+    </main>
+
+    <div class="modal fade" id="createUserModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Create Administrator</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
+      <form id="createUserForm"><div class="modal-body">
+        <div class="mb-3"><label class="form-label">Full Name</label><input class="form-control" name="full_name" maxlength="100" required /></div>
+        <div class="mb-3"><label class="form-label">Username</label><input class="form-control" name="username" pattern="[a-zA-Z0-9._-]{3,50}" required /></div>
+        <div class="mb-3"><label class="form-label">Temporary Password</label><input type="password" class="form-control" name="password" minlength="8" required /><div class="form-text">At least 8 characters with a letter and number.</div></div>
+      </div><div class="modal-footer"><button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button><button class="btn btn-primary">Create</button></div></form>
+    </div></div></div>
+
+    <div class="toast-container position-fixed top-0 end-0 p-3"><div id="notice" class="toast"><div class="toast-header"><strong class="me-auto">User Management</strong><button class="btn-close" data-bs-dismiss="toast"></button></div><div class="toast-body"></div></div></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      const csrfToken = '<%= csrfToken %>';
+      const request = async (url, body = {}) => {
+        const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken }, body: JSON.stringify(body) });
+        return response.json();
+      };
+      const notify = (message) => { document.querySelector('#notice .toast-body').textContent = message; new bootstrap.Toast(document.getElementById('notice')).show(); };
+      document.getElementById('createUserForm').addEventListener('submit', async function (event) {
+        event.preventDefault(); const result = await request('/admin/users', Object.fromEntries(new FormData(this))); notify(result.message); if (result.success) setTimeout(() => location.reload(), 900);
+      });
+      document.querySelectorAll('.edit-user').forEach((button) => button.addEventListener('click', async function () {
+        const full_name = prompt('Full name', this.dataset.name); if (full_name === null) return;
+        const username = prompt('Username', this.dataset.username); if (username === null) return;
+        const result = await request(`/admin/users/${this.dataset.id}/update`, { full_name, username }); notify(result.message); if (result.success) setTimeout(() => location.reload(), 900);
+      }));
+      document.querySelectorAll('.reset-password').forEach((button) => button.addEventListener('click', async function () {
+        const password = prompt(`New password for ${this.dataset.name} (at least 8 characters with a letter and number)`); if (!password) return;
+        const result = await request(`/admin/users/${this.dataset.id}/reset-password`, { password }); notify(result.message);
+      }));
+      document.querySelectorAll('.toggle-user').forEach((button) => button.addEventListener('click', async function () {
+        if (!confirm('Change this account status?')) return; const result = await request(`/admin/users/${this.dataset.id}/toggle`); notify(result.message); if (result.success) setTimeout(() => location.reload(), 900);
+      }));
+    </script>
+  </body>
+</html>

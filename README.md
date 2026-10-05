@@ -1,156 +1,61 @@
-# 🚀 Prompt for Cursor: Admission Management System
+# Admission Management System
 
-### 🧠 Project Overview
+An Express, EJS, and MySQL application for admitting students, delivering portal PINs by SMS, and providing authenticated admission documents.
 
-Build a full-stack web app using **HTML**, **Bootstrap**, **JavaScript (frontend)**, and **Node.js + Express.js + MySQL (backend)** called **Admission Management System**.
+## Requirements
 
----
+- Node.js 18 or newer
+- MySQL 8 or newer
+- An Arkesel account for SMS delivery
 
-## 🎯 Features
+## Setup
 
-- Display a list of students with:
+1. Copy `.env.example` to `.env` and replace every placeholder.
+2. Create the database named by `DB_NAME` and grant the configured database user access to it.
+3. Install packages with `npm install`.
+4. Run `npm start`.
 
-  - Admission Number
-  - Full Name
-  - Telephone Number
-  - Action Button: **Admit**
+On startup, the application creates or safely upgrades its `students` table. It refuses to start when required configuration is absent, the JWT secret is shorter than 32 characters, or the admin password is shorter than 8 characters.
 
-- When the **Admit** button is clicked:
+## Commands
 
-  1. Save the student’s status as **“Admitted”** in the database.
-  2. Generate a personalized **Admission Letter (HTML page)** that includes the student’s Admission Number and Full Name.
-  3. Send an **SMS** (via Arkesel or Twilio API) to the student’s phone number with a link to download their admission documents.
+- `npm start` — start the application
+- `npm run dev` — start with automatic reload
+- `npm test` — run unit tests
+- `npm run check` — check JavaScript syntax
 
----
+## Routes
 
-## 📱 SMS Message Format
+- `/admin/login` — administrator login
+- `/admin` — student management dashboard
+- `/admin/users` — super-admin-only staff account management
+- `/student/login` — admitted-student login
+- `/student/dashboard` — authenticated documents portal
+- `/health/live` — minimal liveness response
 
-```
-Congratulations [Full Name]! You have been admitted.
-Visit [baseURL]/download to get your admission letter and prospectus.
-```
+Admission documents are stored in `documents/`, outside the public static directory, and are served only after student authentication.
 
----
+Admission-letter dates are configured with `ACADEMIC_YEAR`, `REPORTING_DATE`, `REPORTING_TIME`, and `FEE_DEADLINE`. Date values use `YYYY-MM-DD` format so the heading, reporting instructions, and payment deadline remain consistent without editing the template.
 
-## 🌐 Download Page
+## Security and operations
 
-- The link in the SMS opens `/download`.
-- The page should ask for the student’s **Admission Number**.
-- If the Admission Number exists:
+- Never commit `.env` or real credentials.
+- Use HTTPS and set `NODE_ENV=production` in production so authentication cookies are marked secure.
+- Rotate the database password, SMS API key, admin password, and JWT secret if they have ever appeared in source control.
+- SMS failures are recorded in the admin dashboard. “Resend PIN” generates a new PIN and invalidates the previous one.
+- Back up the database before deploying schema changes.
 
-  - Display their personalized Admission Letter.
-  - Show two buttons:
+Existing installations with plaintext legacy PINs are migrated to scrypt hashes the next time each student successfully signs in. Newly generated PINs are stored only as salted hashes.
 
-    1. **Download Admission Prospectus** (PDF)
-    2. **Download Acceptance Letter** (PDF)
+## Administrator roles
 
----
+The first startup creates one super administrator using `SUPER_ADMIN_USERNAME` and `SUPER_ADMIN_PASSWORD`. For compatibility, an existing `ADMIN_PASSWORD` is accepted only as the initial bootstrap password; reset it through **Manage Users** immediately.
 
-## 🧩 Backend Requirements
+- **Super admin:** manage students and administrator accounts.
+- **Admin:** add students, admit students, resend PINs, and use bulk admission.
 
-- Use **Express.js** for routing:
+Disabling an administrator or resetting their password invalidates all of that account's existing sessions.
 
-  - `/` → Homepage showing student list (from MySQL)
-  - `/admit/:id` → Marks a student as admitted and sends SMS
-  - `/download` → Validates admission number and shows details
+The super admin dashboard can display issued student PINs. Login verification still uses a salted hash; the displayed copy is separately protected with authenticated encryption using `PIN_ENCRYPTION_KEY`. Existing PINs issued before this feature show as unavailable until **Resend PIN** generates a new one.
 
-- Connect to **MySQL** using the following table schema:
-
-```sql
-CREATE TABLE students (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  admission_number VARCHAR(20),
-  full_name VARCHAR(100),
-  phone_number VARCHAR(20),
-  admitted BOOLEAN DEFAULT 0
-);
-```
-
-- Optionally, create a `settings` table to store file URLs for:
-
-  - Admission Prospectus
-  - Acceptance Letter
-
----
-
-## 💻 Frontend Requirements
-
-- Use **Bootstrap 5** for styling and layout.
-- Use **Fetch API** or **Axios** for AJAX requests.
-- Create a clean, responsive dashboard UI.
-
----
-
-## 📤 SMS Integration
-
-- Use **Arkesel** or **Twilio** API to send SMS.
-- Store credentials securely in a `.env` file.
-- Include an example request for sending an SMS in Node.js.
-
----
-
-## 🧱 Admission Letter Page
-
-- Admission letter should be dynamically rendered using **EJS** or **Handlebars** templates.
-- Should display:
-
-  - Student’s Name
-  - Admission Number
-  - Congratulations text or admission details.
-
----
-
-## 🗂️ Suggested Folder Structure
-
-```
-admission-app/
-├── server.js
-├── package.json
-├── .env
-├── public/
-│   ├── css/
-│   ├── js/
-│   └── uploads/
-├── views/
-│   ├── index.ejs
-│   ├── admission_letter.ejs
-│   └── download.ejs
-└── db/
-    └── connection.js
-```
-
----
-
-## ⚙️ Setup Instructions
-
-```bash
-npm install
-npm start
-```
-
-- The app should run locally on **port 3000**.
-
----
-
-## 📋 Deliverables
-
-Cursor should generate the **full working code**, including:
-
-- Express routes
-- MySQL connection and queries
-- HTML/Bootstrap templates
-- `.env` file format example
-- Example SMS sending code (mock or Arkesel API)
-- Setup and run instructions
-
----
-
-In all there should be an admin and student route. there should be password protection on the admin and when the admit is clicked there should be a 6 digit pin that will be send along to the admitted student so they login in with with admission number and the passpord to assess the documents.
-
-ARKSEL_APIKEY=SWhWdWtDdVZ1emZyWk9pSWxNYks
-ARKSEL_SENDER_ID=NSACOE
-
-DB_HOST= localhost
-DB_USER=root
-DB_PASSWORD=Cincinnatigirl@12
-DB_NAME=admission_management
+If the bootstrap credentials are unavailable, set `SUPER_ADMIN_USERNAME` and `SUPER_ADMIN_PASSWORD` in `.env`, then run `npm run admin:reset-super`. This activates the account, updates its credentials, and invalidates its existing sessions.

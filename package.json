@@ -10,7 +10,10 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
-    "dev:debug": "nodemon --inspect server.js"
+    "dev:debug": "nodemon --inspect server.js",
+    "test": "node --test",
+    "check": "node --check server.js && node --check routes/admin.js && node --check routes/users.js && node --check routes/student.js",
+    "admin:reset-super": "node scripts/reset-super-admin.js"
   },
   "dependencies": {
     "axios": "^1.5.0",

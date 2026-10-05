@@ -3,6 +3,9 @@ require('dotenv').config();
 
 async function sendSMS(phoneNumber, message) {
   try {
+    if (!process.env.ARKSEL_APIKEY || !process.env.ARKSEL_SENDER_ID) {
+      return { success: false, error: 'SMS service is not configured' };
+    }
     // Format phone number to international format
     const formattedPhone = formatPhoneNumber(phoneNumber);
 
@@ -60,6 +63,7 @@ async function sendSMS(phoneNumber, message) {
 }
 
 function formatPhoneNumber(phone) {
+  if (typeof phone !== 'string') throw new TypeError('Phone number is required');
   // Remove any non-digit characters
   let cleaned = phone.replace(/\D/g, '');
 
@@ -76,4 +80,4 @@ function formatPhoneNumber(phone) {
   return cleaned;
 }
 
-module.exports = { sendSMS };
+module.exports = { sendSMS, formatPhoneNumber };

@@ -33,6 +33,7 @@
               <% } %>
 
               <form method="POST" action="/student/login">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
                 <div class="mb-3">
                   <label for="admission_number" class="form-label"
                     >Admission Number</label
