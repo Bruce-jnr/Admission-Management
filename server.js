@@ -10,7 +10,7 @@ const studentRoutes = require('./routes/student');
 const documentRoutes = require('./routes/documents');
 const { router: userRoutes } = require('./routes/users');
 
-function createApp() {
+function createApp(readiness = Promise.resolve()) {
   const app = express();
   app.disable('x-powered-by');
   app.set('trust proxy', 1);
@@ -24,14 +24,36 @@ function createApp() {
   app.use(cookieParser());
   app.use(csrfToken);
   app.use(requireCsrf);
-  app.use(express.static(path.join(__dirname, 'public'), {
-    dotfiles: 'deny',
-    index: false,
-    maxAge: 0,
-  }));
+  app.use(
+    express.static(path.join(__dirname, 'public'), {
+      dotfiles: 'deny',
+      index: false,
+      maxAge: 0,
+    }),
+  );
+
+  app.get('/health/live', (req, res) => res.json({ status: 'ok' }));
+  app.get('/health/ready', async (req, res) => {
+    try {
+      await readiness;
+      return res.json({ status: 'ready' });
+    } catch {
+      return res.status(503).json({ status: 'unavailable' });
+    }
+  });
+
+  // Passenger can begin forwarding requests before asynchronous database
+  // initialization completes. Hold application requests until it is ready.
+  app.use(async (req, res, next) => {
+    try {
+      await readiness;
+      return next();
+    } catch {
+      return res.status(503).send('Application unavailable');
+    }
+  });
 
   app.get('/', (req, res) => res.redirect('/admin/login'));
-  app.get('/health/live', (req, res) => res.json({ status: 'ok' }));
   app.use('/admin', adminRoutes);
   app.use('/admin/users', userRoutes);
   app.use('/student', studentRoutes);
@@ -49,18 +71,31 @@ function createApp() {
     console.error('Request failed:', error.message);
     if (res.headersSent) return next(error);
     if (req.accepts(['json', 'html']) === 'json') {
-      return res.status(500).json({ success: false, message: 'An unexpected error occurred' });
+      return res
+        .status(500)
+        .json({ success: false, message: 'An unexpected error occurred' });
     }
     return res.status(500).send('An unexpected error occurred');
   });
   return app;
 }
 
-async function start() {
+async function initializeRuntime() {
   validateConfig();
   await initializeDatabase();
   console.log('Database connection successful');
-  const app = createApp();
+}
+
+const runtimeReady = initializeRuntime();
+// Mark the rejection as observed for Passenger. The readiness route and
+// middleware still receive the original rejected promise and return 503.
+runtimeReady.catch((error) => {
+  console.error('Application initialization failed:', error.message);
+});
+const app = createApp(runtimeReady);
+
+async function start() {
+  await runtimeReady;
   const server = await new Promise((resolve, reject) => {
     const listener = app.listen(port, () => {
       console.log(`Server running on port ${port}`);
@@ -88,4 +123,9 @@ if (require.main === module) {
   });
 }
 
-module.exports = { createApp, start };
+// Passenger expects the module itself to be an Express request handler.
+// Function properties preserve the existing programmatic API.
+module.exports = app;
+module.exports.createApp = createApp;
+module.exports.start = start;
+module.exports.ready = runtimeReady;

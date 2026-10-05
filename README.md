@@ -24,6 +24,15 @@ On startup, the application creates or safely upgrades its `students` table. It 
 - `npm test` — run unit tests
 - `npm run check` — check JavaScript syntax
 
+## cPanel Passenger
+
+Set the application root to the project directory and the startup file to `server.js`. The module exports the Express application directly for Passenger while retaining standalone `node server.js` startup. Passenger starts database initialization when it loads the module, and application requests wait for that initialization to finish.
+
+- `/health/live` confirms the Node process can serve requests.
+- `/health/ready` returns `200` only after configuration validation and database initialization succeed.
+
+After deploying changes, restart the application from cPanel so Passenger reloads the startup module.
+
 ## Routes
 
 - `/admin/login` — administrator login
