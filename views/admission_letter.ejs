@@ -1,356 +1,307 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admission Letter - <%= student.full_name %></title>
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-    />
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-      rel="stylesheet"
-    />
     <style>
+      * {
+        box-sizing: border-box;
+      }
       body {
-        font-family: 'Times New Roman', serif;
-        background: #fff;
-        color: #000;
+        margin: 0;
         padding: 20px;
+        background: #eee;
+        color: #000;
+        font-family: 'Times New Roman', serif;
+      }
+      .no-print {
+        text-align: center;
+        margin-bottom: 16px;
+        font-family: Arial, sans-serif;
+      }
+      .no-print button,
+      .no-print a {
+        display: inline-block;
+        padding: 10px 16px;
+        border: 0;
+        border-radius: 4px;
+        background: #123468;
+        color: #fff;
+        font: inherit;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .no-print a {
+        background: #555;
       }
       .a4 {
         width: 210mm;
         min-height: 297mm;
-        max-height: 297mm;
         margin: auto;
-        padding: 20px 30px;
-        border: 1px solid #ddd;
+        padding: 8mm 10mm;
         background: #fff;
-        box-sizing: border-box;
-        overflow: hidden;
       }
-      .header-logo {
-        width: 150px;
-        height: 150px;
-        display: inline-block;
+      .letterhead {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      .references {
+        display: flex;
+        justify-content: space-between;
+        gap: 3mm;
+        margin: 1mm 0 5mm;
+        font-size: 10.5pt;
+      }
+      .header {
+        border-bottom: 2px solid #082858;
+        padding-bottom: 1mm;
+        margin-bottom: 5mm;
+      }
+      .student-details p {
+        margin: 0;
+      }
+      .letter-body,
+      .student-details {
+        font-size: 11pt;
+        line-height: 1.27;
+      }
+      h1 {
+        margin: 1mm 0 2mm;
         text-align: center;
-        vertical-align: middle;
+        font-size: 13pt;
+        line-height: 1.3;
       }
-      .header-logo img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
+      h1 span {
+        text-decoration: underline;
       }
-      .signature-placeholder {
-        width: 200px;
-        height: 60px;
-        margin-top: 10px;
-        text-align: center;
+      p {
+        margin: 0 0 3mm;
       }
-      .signature-placeholder img {
-        max-width: 100%;
-        max-height: 100%;
-        object-fit: contain;
-        mix-blend-mode: multiply;
+      .numbered {
+        display: grid;
+        grid-template-columns: 5mm 1fr;
+        gap: 0;
+        margin-bottom: 3mm;
       }
-      .letter-head {
-        text-align: center;
-        margin-bottom: 15px;
-      }
-      .letter-body {
+      .numbered p {
+        margin: 0;
         text-align: justify;
-        line-height: 1.5;
+      }
+      .payment-note,
+      .receipt-note {
+        text-align: justify;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 2mm 0 1mm;
         font-size: 11pt;
       }
-      .letter-body p {
-        margin-bottom: 12px;
-      }
-      .table {
-        font-size: 12px;
-        margin: 15px 0;
-        text-align: left;
-        word-spacing: normal;
-      }
-      .table th,
-      .table td {
-        padding: 8px;
+      th,
+      td {
         border: 1px solid #000;
+        padding: 1.5mm 1mm;
+        text-align: left;
+      }
+      th {
+        text-align: center;
       }
       .footer {
-        margin-top: 20px;
+        margin: 4mm 0 0 5mm;
+        break-inside: avoid;
       }
-
-      .heading {
-        color: red;
+      .footer img {
+        display: block;
+        width: 48mm;
+        height: 10mm;
+        object-fit: contain;
+        object-position: left;
       }
-
-      /* Print styles for A4 */
+      .footer p {
+        margin: 0;
+      }
       @page {
         size: A4 portrait;
         margin: 8mm 10mm;
       }
-
       @media print {
         html,
         body {
-          width: auto;
-          height: auto;
           margin: 0;
           padding: 0;
           background: #fff;
           print-color-adjust: exact;
           -webkit-print-color-adjust: exact;
         }
-        .a4 {
-          width: auto;
-          height: auto;
-          min-height: 255mm;
-          max-height: none;
-          margin: 0;
-          padding: 0;
-          border: none;
-          box-shadow: none;
-          overflow: visible;
-          page-break-after: avoid;
-          display: flex;
-          flex-direction: column;
-        }
         .no-print {
           display: none !important;
         }
-        .a4 > .text-center h2 {
-          font-size: 19pt;
-          line-height: 1.1;
+        .a4 {
+          width: auto;
+          height: auto;
+          min-height: 0;
+          margin: 0;
+          padding: 0;
         }
-        .a4 > .text-center p,
-        .a4 > .row {
-          font-size: 9.5pt;
-          line-height: 1.25;
-        }
-        .a4 hr {
-          margin: 2.5mm 0;
-          opacity: 1;
-        }
-        .a4 > .mb-3 {
-          margin-bottom: 2mm !important;
-          font-size: 10.5pt;
-        }
-        .a4 > .mb-3 p {
-          margin-bottom: 0;
-        }
-        .letter-body {
-          font-size: 10.5pt;
-          line-height: 1.32;
-          flex: 1;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-        }
-        .letter-body p {
-          margin-bottom: 2.4mm;
-        }
-        .letter-body h6 {
-          margin: 0 0 2.5mm;
-          font-size: 11pt;
-          line-height: 1.25;
-        }
-        .table {
-          width: 100%;
-          margin: 2.5mm 0;
-          font-size: 8.5pt;
-          line-height: 1.15;
-          table-layout: fixed;
-          text-align: left !important;
-        }
-        .table th,
-        .table td {
-          padding: 1.8mm;
-          vertical-align: middle;
-        }
+        .header,
+        .student-details,
+        h1,
+        table,
         .footer {
-          margin-top: 2.5mm;
-        }
-        .header-logo {
-          width: 33mm;
-          height: 33mm;
-        }
-        .signature-placeholder {
-          width: 40mm;
-          height: 13mm;
-          margin-top: 0;
-        }
-        .footer p,
-        .bankers p {
-          margin-bottom: 0;
-        }
-        .bankers {
-          font-size: 9pt;
-        }
-        .footer,
-        .bankers,
-        .table {
           break-inside: avoid;
-          page-break-inside: avoid;
+        }
+        p {
+          orphans: 3;
+          widows: 3;
+        }
+      }
+      @media screen and (max-width: 820px) {
+        body {
+          padding: 10px;
+        }
+        .a4 {
+          width: 100%;
+          min-height: 0;
+          padding: 5mm;
+        }
+        .references {
+          flex-wrap: wrap;
+        }
+        table {
+          font-size: 9pt;
         }
       }
     </style>
   </head>
   <body>
-    <!-- Print and Navigation Controls -->
-    <div class="no-print text-center mb-3">
-      <button onclick="window.print()" class="btn btn-primary me-2">
-        <i class="fas fa-print me-1"></i>Print Letter
-      </button>
-      <a href="/student/dashboard" class="btn btn-secondary">
-        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
-      </a>
+    <div class="no-print">
+      <button type="button" onclick="window.print()">Print Letter</button>
+      <a href="/student/dashboard">Back to Dashboard</a>
     </div>
-
-    <div class="a4">
-      <!-- Header -->
-      <div class="text-center">
-        <h2 class="fw-bold mb-0 text-info heading">
-          NSAWKAW COLLEGE OF EDUCATION
-        </h2>
-        <p class="mb-0 text-danger">
-          (AFFILIATED TO THE UNIVERSITY OF CAPE COAST - UCC)
-        </p>
-      </div>
-      <div class="row text-center mb-1">
-        <div class="col-4 text-start">
-          <div class="fs-6 fst-italic">
-            In case of reply the number and date of the letter should be quoted
-          </div>
-          <p class="mb-0">TEL: +233(0) 507970090</p>
-          <p class="mb-0">EMAIL: info@nsacoe.edu.gh</p>
-          <p class="mb-0">OUR REF: NSCE/ADM/25</p>
-          <p class="mb-0">YOUR REF:</p>
+    <main class="a4">
+      <header class="header">
+        <img
+          class="letterhead"
+          src="/css/images/admission-letterhead-2026.png"
+          alt="Nsawkaw College of Education. Post Office Box NS 1, Nsawkaw, Tain District. Telephone: +233 (0) 507970090 / +233 (0) 595411080. Email: info@nsacoe.edu.gh. In case of reply the number and date of this letter should be quoted."
+        />
+        <div class="references">
+          <span>OUR REF: <strong>NSCE/5ADMS/V.5/01</strong></span>
+          <span>YOUR REF: ……………………</span>
+          <span><strong>DATE: <%= admissionDate %></strong></span>
         </div>
-        <div class="col-4 text-center">
-          <div class="header-logo">
-            <img src="/css/images/logo.jpg" alt="NSACOE Logo" />
-          </div>
-        </div>
-        <div class="col-4 text-end mt-3">
-          <p class="mb-0">POST OFFICE BOX 1</p>
-          <p class="mb-0">NSAWKAW-TAIN DISTRICT</p>
-          <p class="mb-0">BONO REGION</p>
-          <p class="mb-0 mt-3"><%= admissionDate %></p>
-        </div>
+      </header>
+      <div class="student-details">
+        <p>NAME: <strong><%= student.full_name %></strong></p>
+        <p>ADMISSION NO: <strong><%= student.admission_number %></strong></p>
+        <p>Dear Sir/Madam,</p>
       </div>
-
-      <hr />
-
-      <!-- Letter Info -->
-      <div class="mb-3">
-        <p><strong>ADMISSION NO:</strong> <%= student.admission_number %></p>
-      </div>
-
-      <!-- Letter Body -->
-      <div class="letter-body">
-        <p>Dear <strong><%= student.full_name %></strong>,</p>
-        <h6 class="fw-bold text-decoration-underline text-center">
-          OFFER OF ADMISSION<br /><%= academicYear %> ACADEMIC YEAR
-        </h6>
-
-        <p>
-          1. You have been offered admission at
-          <strong>Nsawkaw College of Education</strong> to pursue a 4-year
-          programme leading to the award of
-          <strong>B.Ed. Primary Education</strong> from the University of Cape
-          Coast (UCC). You are to report on campus for the <%= academicYear %>
-          academic year on <strong><%= reportingDate %> by <%= reportingTime %></strong>.
-        </p>
-
-        <p>
-          2. Your admission is for the <%= academicYear %> academic year only. If you fail
-          to enroll or withdraw from the programme without prior approval from
-          the college authorities, you will forfeit the admission and the fees
-          automatically.
-        </p>
-
-        <p>
-          3. The fee for the first semester of the <%= academicYear %> academic year is
-          <strong
-            >Five Thousand, Three Hundred Ghana Cedis (GH¢ 5,300.00)</strong
+      <section class="letter-body">
+        <h1>
+          OFFER OF ADMISSION<br /><span><%= academicYear %> ACADEMIC YEAR</span>
+        </h1>
+        <div class="numbered">
+          <span>1.</span>
+          <p>
+            You have been admitted at Nsawkaw College of Education to pursue a
+            4-year Bachelor’s degree programme leading to the award of B.ED
+            PRIMARY EDUCATION from the University of Cape Coast (UCC). You are
+            to report on campus for the
+            <strong><%= academicYear %></strong> academic year on
+            <strong><%= reportingDate %> before <%= reportingTime %>.</strong>
+            Students who report after <%= reportingTime %> would not be
+            entertained.
+          </p>
+        </div>
+        <div class="numbered">
+          <span>2.</span>
+          <p>
+            Your admission is for the
+            <strong><%= academicYear %></strong> academic year only. If you fail
+            to enroll or withdraw from the programme without prior approval from
+            the college authorities, you will forfeit the admission and the fees
+            automatically.
+          </p>
+        </div>
+        <div class="numbered">
+          <span>3.</span>
+          <p>
+            The total fee for the <strong>first semester</strong> of
+            <strong><%= academicYear %></strong> academic calendar is Five
+            Thousand, Four Hundred and eighty Ghana Cedis
+            <strong>(GH¢ 5,480.00)</strong> including feeding, accommodation,
+            facility user fee, tuition fee, and examination fee for
+            <strong>the 1st semester.</strong> To <strong>secure</strong> your
+            place in the College, make
+            <strong>full non-refundable payment</strong> of the fees on or
+            before <strong> 18th October, 2026.</strong>
+          </p>
+        </div>
+        <p class="payment-note">
+          <strong>Note</strong> that the College will not accept physical cash.
+          <em
+            >Therefore, you are to pay your fees upon receipt of this admission
+            letter at any of the branches of the banks indicated below
+            throughout the country.</em
           >
-          including residential facility user fees and examination fees. Please
-          make full non-refundable payment of the fees on or before
-          <strong><%= feeDeadline %></strong> to secure your place in the
-          College.
         </p>
-
-        <p>
-          Note that the College will not accept physical cash. You may pay your
-          fees at any of the following banks nationwide:
-        </p>
-
-        <table class="table table-bordered">
-          <thead class="table-light">
+        <table aria-label="Banks for admission fee payment">
+          <thead>
             <tr>
-              <th>BANK NAME</th>
+              <th>NO.</th>
+              <th>BANK</th>
               <th>ACCOUNT NUMBER</th>
-              <th>ACCOUNT NAME</th>
               <th>BRANCH</th>
-              <th>VIA</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>Ghana Commercial Bank (GCB)</td>
-              <td>7111130001820</td>
-              <td>Nsawkaw College of Education</td>
-              <td>Wenchi</td>
-              <td>Eagle Pay</td>
+              <td>1</td>
+              <td>BACCSOD</td>
+              <td>2071481008529201</td>
+              <td>Nsawkaw/Banda</td>
             </tr>
             <tr>
-              <td>Consolidated Bank Ghana (CBG)</td>
+              <td>2</td>
+              <td>GCB</td>
+              <td>7111130001820</td>
+              <td>Wenchi</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>CBG</td>
               <td>2216537640001</td>
-              <td>Nsawkaw College of Education</td>
-              <td>Techiman Wenchi Road</td>
-              <td>Standardized Platform</td>
+              <td>Techiman–Wenchi Road</td>
             </tr>
           </tbody>
         </table>
-
-        <p>
+        <p class="receipt-note">
           A snapshot of your bank payment receipt(s) should be sent via WhatsApp
-          to <strong>0597671371</strong> or <strong>0263742044</strong>. On
-          arrival, submit the original payment receipt, admission letter,
-          acceptance form, and results slip/certificate immediately to the
-          Finance Office of the College.
+          to <strong>0597671371 and 0263742044.</strong> On arrival, the
+          original payment receipt from the bank, a copy of your admission
+          letter, acceptance form and results slip/certificate must be SUBMITTED
+          IMMEDIATELY TO THE FINANCE OFFICE of the College.
         </p>
-
-        <p>
-          4. Your WASSCE result(s) shall be verified at WAEC, and if any
-          discrepancies are detected in your results and/or identity, you will
-          be dismissed instantly from the College without prejudice to any legal
-          action that may be taken against you.
-        </p>
-
-        <p>5. Congratulations on your admission.</p>
-
-        <div class="footer">
-          <div class="signature-placeholder">
-            <img src="/css/images/signature.png" alt="Principal Signature" />
-          </div>
+        <div class="numbered">
+          <span>4.</span>
           <p>
-            <strong>Prof. Augustine Oppon-Kumi</strong><br />(College Principal)
+            Your WASSCE result(s) shall be verified at WAEC and if any
+            discrepancies are detected in your results and/or identity, you will
+            be dismissed instantly from the College without prejudice to any
+            legal action that may be taken against you.
           </p>
         </div>
-        <hr />
-        <div class="bankers">
-          <div class="row">
-            <div class="col-6">
-              <p>BANKERS: CBG & GCB</p>
-            </div>
-            <div class="col-6">
-              <p>ADMISSION: In Progress</p>
-            </div>
-          </div>
+        <div class="numbered">
+          <span>5.</span>
+          <p>Congratulations on your admission, please.</p>
         </div>
-      </div>
-    </div>
+        <div class="footer">
+          <img src="/css/images/signature.png" alt="Principal Signature" />
+          <p>Prof. Augustine Oppon-Kumi<br />(College Principal)</p>
+        </div>
+      </section>
+    </main>
   </body>
 </html>

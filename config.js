@@ -73,9 +73,9 @@ const config = {
   // Admission configuration
   admissionLetter: Object.freeze({
     academicYear: '2026/2027',
-    reportingDate: '2026-11-11',
-    reportingTime: '6:00pm',
-    feeDeadline: '2026-11-10',
+    reportingDate: '2026-10-19',
+    reportingTime: '5:00pm',
+    feeDeadline: '2026-10-18',
   }),
 };
 
