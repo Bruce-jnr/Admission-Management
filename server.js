@@ -10,6 +10,11 @@ const studentRoutes = require('./routes/student');
 const documentRoutes = require('./routes/documents');
 const { router: userRoutes } = require('./routes/users');
 
+const isPassenger = typeof PhusionPassenger !== 'undefined';
+if (isPassenger) {
+  PhusionPassenger.configure({ autoInstall: false });
+}
+
 function createApp(readiness = Promise.resolve()) {
   const app = express();
   app.disable('x-powered-by');
@@ -96,9 +101,14 @@ const app = createApp(runtimeReady);
 
 async function start() {
   await runtimeReady;
+  const listenTarget = isPassenger ? 'passenger' : port;
   const server = await new Promise((resolve, reject) => {
-    const listener = app.listen(port, () => {
-      console.log(`Server running on port ${port}`);
+    const listener = app.listen(listenTarget, () => {
+      console.log(
+        isPassenger
+          ? 'Server listening through Phusion Passenger'
+          : `Server running on port ${port}`,
+      );
       resolve(listener);
     });
     listener.once('error', reject);
@@ -116,15 +126,15 @@ async function start() {
   return server;
 }
 
-if (require.main === module) {
+if (require.main === module || isPassenger) {
   start().catch((error) => {
     console.error('Application failed to start:', error.message);
     process.exit(1);
   });
 }
 
-// Passenger expects the module itself to be an Express request handler.
-// Function properties preserve the existing programmatic API.
+// Export the app for tests and integrations. Passenger starts it through the
+// explicit listen('passenger') call above, which enables reverse port binding.
 module.exports = app;
 module.exports.createApp = createApp;
 module.exports.start = start;

@@ -26,7 +26,7 @@ On startup, the application creates or safely upgrades its `students` table. It 
 
 ## cPanel Passenger
 
-Set the application root to the project directory and the startup file to `server.js`. The module exports the Express application directly for Passenger while retaining standalone `node server.js` startup. Passenger starts database initialization when it loads the module, and application requests wait for that initialization to finish.
+Set the application root to the project directory and the startup file to `server.js`. When Passenger loads the file, the application initializes the database and calls `listen('passenger')` so Passenger can apply reverse port binding. Direct `node server.js` startup continues to listen on the configured numeric port.
 
 - `/health/live` confirms the Node process can serve requests.
 - `/health/ready` returns `200` only after configuration validation and database initialization succeed.
