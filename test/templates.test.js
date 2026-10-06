@@ -48,6 +48,8 @@ test('admission letter declares an exact A4 print page', () => {
     'utf8',
   );
   assert.match(letter, /@page\s*{[\s\S]*size:\s*A4 portrait/);
-  assert.match(letter, /width:\s*210mm/);
-  assert.match(letter, /height:\s*296mm/);
+  assert.match(letter, /margin:\s*8mm 10mm/);
+  assert.match(letter, /@media print[\s\S]*\.a4\s*{[\s\S]*height:\s*auto/);
+  const printStyles = letter.match(/@media print[\s\S]*?<\/style>/)[0];
+  assert.doesNotMatch(printStyles, /height:\s*29[67]mm/);
 });
