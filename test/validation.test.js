@@ -11,7 +11,7 @@ test('student input is normalized and validated', () => {
   });
   assert.deepEqual(result.errors, []);
   assert.equal(result.student.admissionNumber, 'NS/001');
-  assert.equal(result.student.fullName, 'Ama Mensah');
+  assert.equal(result.student.fullName, 'AMA MENSAH');
 });
 
 test('invalid student input is rejected', () => {

@@ -4,7 +4,7 @@ const PHONE_NUMBER = /^\+?[0-9][0-9\s()-]{7,19}$/;
 function normalizeStudentInput(input = {}) {
   return {
     admissionNumber: String(input.admission_number || '').trim().toUpperCase(),
-    fullName: String(input.full_name || '').trim().replace(/\s+/g, ' '),
+    fullName: String(input.full_name || '').trim().replace(/\s+/g, ' ').toUpperCase(),
     phoneNumber: String(input.phone_number || '').trim(),
   };
 }
